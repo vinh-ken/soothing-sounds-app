@@ -152,21 +152,18 @@
                 button.addEventListener('click', () => {
                     const audio = button.parentElement.previousElementSibling;
                     const icon = button.querySelector('i');
-
-                    // Check if the audio file has loaded. If not, show an error.
-                    if (audio.readyState < 3) {
-                        showMessage(`Error: Could not load sound file from ${audio.src}. Please check the file path and name.`);
-                        return; // Stop execution
-                    }
-
-                    // Check the icon's class directly to determine its state
-                    if (icon.classList.contains('fa-play')) {
-                        // If it's the play icon, play the audio and change the icon to pause
-                        audio.play();
-                        icon.classList.remove('fa-play');
-                        icon.classList.add('fa-pause');
+                    
+                    // Directly attempt to play or pause the audio.
+                    // This is the correct way to handle iOS's strict autoplay policy.
+                    if (audio.paused) {
+                        audio.play().then(() => {
+                            icon.classList.remove('fa-play');
+                            icon.classList.add('fa-pause');
+                        }).catch(error => {
+                            // Catch any potential errors if the browser blocks the play call
+                            showMessage(`Error playing audio: ${error.message}`);
+                        });
                     } else {
-                        // If it's the pause icon, pause the audio and change the icon to play
                         audio.pause();
                         icon.classList.remove('fa-pause');
                         icon.classList.add('fa-play');
