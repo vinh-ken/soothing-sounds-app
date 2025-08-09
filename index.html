@@ -3,366 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firebase Auth App</title>
+    <title>Soothing Sounds App</title>
+    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 1rem;
         }
-        .container {
-            max-width: 48rem;
-            width: 100%;
-        }
-        .login-card {
-            background-color: #ffffff;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            text-align: center;
-        }
-        .login-card h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        .login-card button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            color: #ffffff;
-            transition: background-color 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .login-card button:hover {
-            opacity: 0.9;
-        }
-        .google-btn {
-            background-color: #4285F4;
-            border: 1px solid #4285F4;
-        }
-        .google-btn img {
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-        .github-btn {
-            background-color: #1f2328;
-            border: 1px solid #1f2328;
-        }
-        .github-btn img {
-            filter: invert(1);
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-        .email-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            text-align: left;
-        }
-        .email-form input {
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            width: 100%;
-        }
-        .email-form button {
-            width: 100%;
-            background-color: #3b82f6;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            color: #ffffff;
-            transition: background-color 0.2s ease-in-out;
-            cursor: pointer;
-        }
-        .email-form button:hover {
-            background-color: #2563eb;
-        }
-        .user-info {
-            display: none; /* Hidden by default */
-            text-align: left;
-            margin-top: 1.5rem;
-        }
-        .user-info h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        .sounds-btn {
-            background-color: #10b981;
-            border: 1px solid #10b981;
-        }
-        .sounds-btn:hover {
-            background-color: #059669;
-        }
-        .logout-btn {
-            margin-top: 1rem;
-            background-color: #ef4444;
-            border: 1px solid #ef4444;
-        }
-        .logout-btn:hover {
-            background-color: #dc2626;
-        }
-        .error-message {
-            color: #ef4444;
-            margin-top: 1rem;
-            display: none;
-        }
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .loading-spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
+        /* Custom styling for the range input for better aesthetics */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            border-left-color: #3b82f6;
-            animation: spin 1s ease infinite;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        input[type=range]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: none;
         }
     </style>
 </head>
-<body>
-    <div class="container flex justify-center items-center">
-        <div class="login-card" id="auth-card">
-            <h1>Sign in with...</h1>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-            <button id="google-login-btn" class="google-btn">
-                <img src="https://www.gstatic.com/images/branding/product/2x/glogo_48dp.png" alt="Google icon">
-                Sign in with Google
-            </button>
+    <!-- Main container for the app -->
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Soothing Sounds</h1>
+        <p class="text-center text-gray-600 mb-8">Create your perfect soundscape by mixing different sounds.</p>
+        
+        <!-- Grid container for all the sound players -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
 
-            <button id="github-login-btn" class="github-btn">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub icon">
-                Sign in with GitHub
-            </button>
-
-            <div class="flex items-center my-4">
-                <div class="flex-grow border-t border-gray-300"></div>
-                <span class="flex-shrink mx-4 text-gray-500">OR</span>
-                <div class="flex-grow border-t border-gray-300"></div>
+            <!-- Individual Sound Player Card (Rain) -->
+            <div class="sound-player p-4 bg-blue-50 rounded-xl shadow-md flex flex-col items-center">
+                <div class="icon-wrapper w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center text-blue-600 mb-4">
+                    <i class="fas fa-cloud-rain text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Rain</h3>
+                <!-- The audio element with a public URL -->
+                <audio id="rain-audio" src="Sounds/rain.mp3" loop></audio>
+                <div class="controls w-full flex items-center gap-2 mt-2">
+                    <button class="play-pause-btn bg-blue-400 text-white rounded-full p-3 hover:bg-blue-500 transition-colors">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="volume-slider w-full h-2 bg-blue-300 rounded-lg appearance-none cursor-pointer">
+                    <!-- Volume percentage display -->
+                    <span class="volume-percentage w-10 text-right text-gray-600">50%</span>
+                </div>
             </div>
 
-            <div class="email-form">
-                <p class="text-sm text-gray-500 text-center">Sign in with Email and Password</p>
-                <input type="email" id="email-input" placeholder="Email">
-                <input type="password" id="password-input" placeholder="Password">
-                <button id="email-login-btn">Sign In</button>
+            <!-- Individual Sound Player Card (Forest) -->
+            <div class="sound-player p-4 bg-green-50 rounded-xl shadow-md flex flex-col items-center">
+                <div class="icon-wrapper w-16 h-16 bg-green-200 rounded-full flex items-center justify-center text-green-600 mb-4">
+                    <i class="fas fa-leaf text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Forest</h3>
+                <!-- The audio element with a public URL -->
+                <audio id="forest-audio" src="Sounds/forest.mp3" loop></audio>
+                <div class="controls w-full flex items-center gap-2 mt-2">
+                    <button class="play-pause-btn bg-green-400 text-white rounded-full p-3 hover:bg-green-500 transition-colors">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="volume-slider w-full h-2 bg-green-300 rounded-lg appearance-none cursor-pointer">
+                    <!-- Volume percentage display -->
+                    <span class="volume-percentage w-10 text-right text-gray-600">50%</span>
+                </div>
             </div>
+
+            <!-- Individual Sound Player Card (Ocean) -->
+            <div class="sound-player p-4 bg-cyan-50 rounded-xl shadow-md flex flex-col items-center">
+                <div class="icon-wrapper w-16 h-16 bg-cyan-200 rounded-full flex items-center justify-center text-cyan-600 mb-4">
+                    <i class="fas fa-water text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Ocean</h3>
+                <!-- The audio element with a public URL -->
+                <audio id="ocean-audio" src="Sounds/ocean.mp3" loop></audio>
+                <div class="controls w-full flex items-center gap-2 mt-2">
+                    <button class="play-pause-btn bg-cyan-400 text-white rounded-full p-3 hover:bg-cyan-500 transition-colors">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="volume-slider w-full h-2 bg-cyan-300 rounded-lg appearance-none cursor-pointer">
+                    <!-- Volume percentage display -->
+                    <span class="volume-percentage w-10 text-right text-gray-600">50%</span>
+                </div>
+            </div>
+
+            <!-- Individual Sound Player Card (Firewood) -->
+            <div class="sound-player p-4 bg-red-50 rounded-xl shadow-md flex flex-col items-center">
+                <div class="icon-wrapper w-16 h-16 bg-red-200 rounded-full flex items-center justify-center text-red-600 mb-4">
+                    <i class="fas fa-fire text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Firewood</h3>
+                <!-- The audio element with a public URL -->
+                <audio id="firewood-audio" src="Sounds/firewood.mp3" loop></audio>
+                <div class="controls w-full flex items-center gap-2 mt-2">
+                    <button class="play-pause-btn bg-red-400 text-white rounded-full p-3 hover:bg-red-500 transition-colors">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <input type="range" min="0" max="1" value="0.5" step="0.01" class="volume-slider w-full h-2 bg-red-300 rounded-lg appearance-none cursor-pointer">
+                    <!-- Volume percentage display -->
+                    <span class="volume-percentage w-10 text-right text-gray-600">50%</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playPauseButtons = document.querySelectorAll('.play-pause-btn');
+            const volumeSliders = document.querySelectorAll('.volume-slider');
+            const volumePercentages = document.querySelectorAll('.volume-percentage');
             
-            <p id="error-message" class="error-message"></p>
-        </div>
+            // Add an event listener to each play/pause button.
+            playPauseButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const audio = button.parentElement.previousElementSibling;
+                    const icon = button.querySelector('i');
 
-        <div class="login-card user-info" id="user-profile-card">
-            <h2 id="user-display-name"></h2>
-            <p id="user-email"></p>
-            <p id="user-uid"></p>
-            <div class="flex flex-col gap-4 mt-4">
-                <button id="sounds-app-btn" class="sounds-btn">Go to Soothing Sounds App</button>
-                <button id="logout-btn" class="logout-btn">Log Out</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="loading-overlay" id="loading-overlay">
-        <div class="loading-spinner"></div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        const userFirebaseConfig = {apiKey: "AIzaSyAaqbsv0GJDmcjGwGIvBNLBZh2RdukgmGA",
-    authDomain: "soothing-sounds-app.firebaseapp.com",
-    projectId: "soothing-sounds-app",
-    storageBucket: "soothing-sounds-app.firebasestorage.app",
-    messagingSenderId: "727936486159",
-    appId: "1:727936486159:web:225c9bc3698391bfad0c7a",
-    measurementId: "G-4CK8S9C4YS"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
-        // ------------------------------------------------
-
-        // Wait for Firebase config to be provided before initializing
-        if (Object.keys(userFirebaseConfig).length === 0) {
-            console.error("Firebase configuration is missing. Please provide your firebaseConfig object.");
-            document.getElementById('error-message').textContent = "Firebase configuration is missing. Please add your config to the code.";
-            document.getElementById('error-message').style.display = 'block';
-            document.getElementById('auth-card').style.opacity = '0.5';
-            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
-        } else {
-            // Initialize Firebase
-            const app = initializeApp(userFirebaseConfig);
-            const auth = getAuth(app);
-            const googleProvider = new GoogleAuthProvider();
-            const githubProvider = new GithubAuthProvider();
-
-            // DOM elements
-            const authCard = document.getElementById('auth-card');
-            const userProfileCard = document.getElementById('user-profile-card');
-            const userDisplayName = document.getElementById('user-display-name');
-            const userEmail = document.getElementById('user-email');
-            const userUID = document.getElementById('user-uid');
-            const loadingOverlay = document.getElementById('loading-overlay');
-            const errorMessage = document.getElementById('error-message');
-
-            const googleLoginBtn = document.getElementById('google-login-btn');
-            const githubLoginBtn = document.getElementById('github-login-btn');
-            const emailLoginBtn = document.getElementById('email-login-btn');
-            const soundsAppBtn = document.getElementById('sounds-app-btn');
-            const logoutBtn = document.getElementById('logout-btn');
-
-            // Show loading spinner
-            function showLoading() {
-                loadingOverlay.style.display = 'flex';
-            }
-
-            // Hide loading spinner
-            function hideLoading() {
-                loadingOverlay.style.display = 'none';
-            }
-
-            // Handle errors
-            function handleError(error) {
-                hideLoading();
-                let message = "An unknown error occurred.";
-                console.error("Error during authentication:", error);
-                
-                if (error.code) {
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                        case 'auth/wrong-password':
-                        case 'auth/invalid-credential':
-                            message = "Invalid email or password.";
-                            break;
-                        case 'auth/popup-closed-by-user':
-                            message = "Authentication popup was closed. Please try again.";
-                            break;
-                        case 'auth/email-already-in-use':
-                            message = "The email address is already in use by another account.";
-                            break;
-                        case 'auth/invalid-email':
-                            message = "The email address is not valid.";
-                            break;
-                        case 'auth/network-request-failed':
-                            message = "Network error. Please check your internet connection.";
-                            break;
-                        default:
-                            message = error.message;
-                    }
-                }
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-            }
-
-            // Event listeners for sign-in
-            googleLoginBtn.addEventListener('click', async () => {
-                showLoading();
-                try {
-                    await signInWithPopup(auth, googleProvider);
-                } catch (error) {
-                    handleError(error);
-                }
-            });
-
-            githubLoginBtn.addEventListener('click', async () => {
-                showLoading();
-                try {
-                    await signInWithPopup(auth, githubProvider);
-                } catch (error) {
-                    handleError(error);
-                }
-            });
-
-            emailLoginBtn.addEventListener('click', async () => {
-                showLoading();
-                const email = document.getElementById('email-input').value;
-                const password = document.getElementById('password-input').value;
-                try {
-                    // Try to sign in first
-                    await signInWithEmailAndPassword(auth, email, password);
-                } catch (error) {
-                    // If sign-in fails, try to create a new user (which also signs them in)
-                    if (error.code === 'auth/user-not-found') {
-                        try {
-                            const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
-                            await createUserWithEmailAndPassword(auth, email, password);
-                        } catch (createError) {
-                            handleError(createError);
-                        }
+                    // Check the icon's class directly to determine its state
+                    if (icon.classList.contains('fa-play')) {
+                        // If it's the play icon, play the audio and change the icon to pause
+                        audio.play();
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-pause');
                     } else {
-                        handleError(error);
+                        // If it's the pause icon, pause the audio and change the icon to play
+                        audio.pause();
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-play');
                     }
-                }
+                });
             });
 
-            // Event listener for the new "Soothing Sounds" button
-            soundsAppBtn.addEventListener('click', () => {
-                // Redirects to the Soothing Sounds app page
-                window.location.href = 'soothing-sounds-app-for-canvas.html';
+            // Add an event listener to each volume slider.
+            volumeSliders.forEach(slider => {
+                slider.addEventListener('input', () => {
+                    const audio = slider.parentElement.previousElementSibling;
+                    audio.volume = slider.value;
+                    const percentageDisplay = slider.nextElementSibling;
+                    const percentage = Math.round(slider.value * 100);
+                    percentageDisplay.textContent = `${percentage}%`;
+                });
             });
 
-            // Logout event listener
-            logoutBtn.addEventListener('click', async () => {
-                showLoading();
-                try {
-                    await signOut(auth);
-                } catch (error) {
-                    handleError(error);
-                }
+            // Initial setup: ensure audio elements and percentage displays have their correct starting values.
+            volumeSliders.forEach(slider => {
+                const audio = slider.parentElement.previousElementSibling;
+                audio.volume = slider.value;
             });
-
-            // Auth state observer
-            onAuthStateChanged(auth, (user) => {
-                hideLoading();
-                errorMessage.style.display = 'none';
-
-                if (user) {
-                    // User is signed in
-                    authCard.style.display = 'none';
-                    userProfileCard.style.display = 'block';
-
-                    userDisplayName.textContent = `Welcome, ${user.displayName || 'User'}!`;
-                    userEmail.textContent = `Email: ${user.email || 'N/A'}`;
-                    userUID.textContent = `User ID: ${user.uid}`;
-                } else {
-                    // User is signed out
-                    userProfileCard.style.display = 'none';
-                    authCard.style.display = 'flex';
-                }
+            volumePercentages.forEach(percentageDisplay => {
+                const slider = percentageDisplay.previousElementSibling;
+                const percentage = Math.round(slider.value * 100);
+                percentageDisplay.textContent = `${percentage}%`;
             });
-        }
+        });
     </script>
 </body>
 </html>
