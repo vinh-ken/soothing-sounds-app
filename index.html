@@ -24,7 +24,7 @@
             background-color: #ffffff;
             border-radius: 1rem;
             padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1-px rgba(0, 0, 0, 0.06);
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
@@ -103,6 +103,13 @@
             font-weight: 600;
             color: #1f2937;
         }
+        .sounds-btn {
+            background-color: #10b981;
+            border: 1px solid #10b981;
+        }
+        .sounds-btn:hover {
+            background-color: #059669;
+        }
         .logout-btn {
             margin-top: 1rem;
             background-color: #ef4444;
@@ -177,7 +184,10 @@
             <h2 id="user-display-name"></h2>
             <p id="user-email"></p>
             <p id="user-uid"></p>
-            <button id="logout-btn" class="logout-btn">Log Out</button>
+            <div class="flex flex-col gap-4 mt-4">
+                <button id="sounds-app-btn" class="sounds-btn">Go to Soothing Sounds App</button>
+                <button id="logout-btn" class="logout-btn">Log Out</button>
+            </div>
         </div>
     </div>
 
@@ -189,18 +199,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    
-        const userFirebaseConfig = {<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyAaqbsv0GJDmcjGwGIvBNLBZh2RdukgmGA",
+        const userFirebaseConfig = {apiKey: "AIzaSyAaqbsv0GJDmcjGwGIvBNLBZh2RdukgmGA",
     authDomain: "soothing-sounds-app.firebaseapp.com",
     projectId: "soothing-sounds-app",
     storageBucket: "soothing-sounds-app.firebasestorage.app",
@@ -209,7 +208,10 @@
     measurementId: "G-4CK8S9C4YS"
   };
 
-
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
         // ------------------------------------------------
 
         // Wait for Firebase config to be provided before initializing
@@ -238,6 +240,7 @@
             const googleLoginBtn = document.getElementById('google-login-btn');
             const githubLoginBtn = document.getElementById('github-login-btn');
             const emailLoginBtn = document.getElementById('email-login-btn');
+            const soundsAppBtn = document.getElementById('sounds-app-btn');
             const logoutBtn = document.getElementById('logout-btn');
 
             // Show loading spinner
@@ -324,6 +327,12 @@
                 }
             });
 
+            // Event listener for the new "Soothing Sounds" button
+            soundsAppBtn.addEventListener('click', () => {
+                // Redirects to the Soothing Sounds app page
+                window.location.href = 'soothing-sounds-app-for-canvas.html';
+            });
+
             // Logout event listener
             logoutBtn.addEventListener('click', async () => {
                 showLoading();
@@ -356,6 +365,4 @@
         }
     </script>
 </body>
-</html>
-
 </html>
