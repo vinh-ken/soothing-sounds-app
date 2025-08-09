@@ -57,71 +57,197 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signOut, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // IMPORTANT: Global variables are provided by the environment
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
-        let app, auth;
+        let app, auth, db;
         let userId = null;
+        let userRole = null;
+
+        // Role-Based Access Control (RBAC) model configuration
+        // In a real app, this data would be stored in a secure database like Firestore
+        const ROLES = {
+            STANDARD: 'standard_user',
+            PREMIUM: 'premium_user'
+        };
+
+        const PERMISSIONS = {
+            accessFirewood: 'access_firewood'
+        };
+
+        const ROLE_PERMISSIONS = {
+            [ROLES.STANDARD]: [],
+            [ROLES.PREMIUM]: [PERMISSIONS.accessFirewood]
+        };
+
+        // Function to check if a user has a specific permission
+        function hasPermission(permission) {
+            return userRole && ROLE_PERMISSIONS[userRole].includes(permission);
+        }
+
+        // Function to set up a listener for the user's role in Firestore
+        // For this example, we'll simulate this by setting the role after login
+        async function assignRoleAndDisplay(user, role) {
+            if (!user) return;
+            
+            // In a real-world scenario, you would fetch the user's role from a database
+            // and listen for changes. For this example, we'll just set it.
+            userRole = role;
+            updateUIForRole();
+            
+            // To demonstrate data persistence, we can save the role to Firestore
+            if (db) {
+                const userDocRef = doc(db, 'artifacts', appId, 'users', user.uid, 'user_data', 'profile');
+                try {
+                    await setDoc(userDocRef, { role: userRole }, { merge: true });
+                    console.log('User role saved to Firestore:', userRole);
+                } catch (e) {
+                    console.error("Error saving user role: ", e);
+                }
+            }
+        }
+
+        function updateUIForRole() {
+            const firewoodOverlay = document.getElementById('firewood-overlay');
+            const authStatusDisplay = document.getElementById('auth-status');
+            const firewoodPlayBtn = document.getElementById('firewood-play-btn');
+
+            if (userRole === ROLES.PREMIUM) {
+                firewoodOverlay.classList.add('hidden');
+                authStatusDisplay.textContent = `Logged in as Premium User: ${userId}`;
+                firewoodPlayBtn.disabled = false;
+            } else if (userRole === ROLES.STANDARD) {
+                firewoodOverlay.classList.remove('hidden');
+                // Update the overlay message for a logged-in standard user
+                firewoodOverlay.innerHTML = `
+                    <i class="fas fa-lock text-red-600 text-4xl mb-2"></i>
+                    <p class="text-red-600 font-semibold">Upgrade to Premium to unlock</p>
+                `;
+                authStatusDisplay.textContent = `Logged in as Standard User: ${userId}`;
+                firewoodPlayBtn.disabled = true;
+            } else {
+                // If not logged in at all
+                firewoodOverlay.classList.remove('hidden');
+                firewoodOverlay.innerHTML = `
+                    <i class="fas fa-lock text-red-600 text-4xl mb-2"></i>
+                    <p class="text-red-600 font-semibold">Log in to unlock</p>
+                `;
+                authStatusDisplay.textContent = 'Not logged in';
+                firewoodPlayBtn.disabled = true;
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            // Get all necessary UI elements
+            const loginPageContainer = document.getElementById('login-page-container');
+            const mainAppContainer = document.getElementById('main-app-container');
+            const loginStandardBtn = document.getElementById('login-standard-btn');
+            const loginPremiumBtn = document.getElementById('login-premium-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const authStatusDisplay = document.getElementById('auth-status');
+            
+            // Check for Firebase configuration
             if (Object.keys(firebaseConfig).length > 0) {
                 try {
+                    // Initialize Firebase
                     app = initializeApp(firebaseConfig);
                     auth = getAuth(app);
+                    db = getFirestore(app);
                     
-                    const authButton = document.getElementById('auth-btn');
-
-                    // A more robust approach: add a single, permanent event listener to the button
-                    authButton.addEventListener('click', async () => {
-                        try {
-                            if (auth.currentUser) {
-                                // If a user is logged in, sign them out
-                                await signOut(auth);
-                            } else {
-                                // If no user is logged in, sign in anonymously
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Authentication action failed:", error);
-                        }
-                    });
-
-                    // This listener handles UI updates whenever the auth state changes
-                    onAuthStateChanged(auth, (user) => {
+                    // --- Auth State Change Listener ---
+                    onAuthStateChanged(auth, async (user) => {
                         if (user) {
-                            // User is logged in
                             userId = user.uid;
-                            document.getElementById('auth-status').textContent = `Logged in as: ${userId}`;
-                            authButton.textContent = 'Logout';
-                            document.getElementById('firewood-overlay').classList.add('hidden');
+                            loginPageContainer.classList.add('hidden');
+                            mainAppContainer.classList.remove('hidden');
+                            
+                            // Re-assign role after login
+                            // This is a simplified way to handle roles. In a real app, you would
+                            // fetch the user's role from a database.
+                            // The user's role is not persisted in this example, so it needs to be
+                            // set again on each login.
+                            await assignRoleAndDisplay(user, userRole);
+                            
                         } else {
-                            // User is logged out
+                            // User is logged out, show the login page
                             userId = null;
-                            document.getElementById('auth-status').textContent = 'Not logged in';
-                            authButton.textContent = 'Login';
-                            document.getElementById('firewood-overlay').classList.remove('hidden');
-                            // Pause the exclusive sound if it was playing
+                            userRole = null;
+                            mainAppContainer.classList.add('hidden');
+                            loginPageContainer.classList.remove('hidden');
+                            
+                            // Pause the exclusive sound if it was playing and reset its button
                             const firewoodAudio = document.getElementById('firewood-audio');
                             firewoodAudio.pause();
                             const firewoodPlayBtn = document.getElementById('firewood-play-btn');
                             const firewoodPlayIcon = firewoodPlayBtn.querySelector('i');
                             firewoodPlayIcon.classList.remove('fa-pause');
                             firewoodPlayIcon.classList.add('fa-play');
+                            
+                            updateUIForRole();
                         }
                     });
 
-                    // Sign in with the provided custom token or anonymously if no token exists
+                    // Event Listeners for new login buttons
+                    loginStandardBtn.addEventListener('click', async () => {
+                        loginStandardBtn.textContent = 'Logging in...';
+                        loginStandardBtn.disabled = true;
+                        setTimeout(async () => {
+                            try {
+                                const userCredential = await signInAnonymously(auth);
+                                await assignRoleAndDisplay(userCredential.user, ROLES.STANDARD);
+                            } catch (error) {
+                                console.error("Authentication failed:", error);
+                            }
+                            loginStandardBtn.textContent = 'Log In as Standard User';
+                            loginStandardBtn.disabled = false;
+                        }, 1500);
+                    });
+
+                    loginPremiumBtn.addEventListener('click', async () => {
+                        loginPremiumBtn.textContent = 'Logging in...';
+                        loginPremiumBtn.disabled = true;
+                        setTimeout(async () => {
+                            try {
+                                const userCredential = await signInAnonymously(auth);
+                                await assignRoleAndDisplay(userCredential.user, ROLES.PREMIUM);
+                            } catch (error) {
+                                console.error("Authentication failed:", error);
+                            }
+                            loginPremiumBtn.textContent = 'Log In as Premium User';
+                            loginPremiumBtn.disabled = false;
+                        }, 1500);
+                    });
+
+                    // Event listener for the logout button
+                    logoutBtn.addEventListener('click', async () => {
+                        console.log('Signing out...');
+                        await signOut(auth);
+                    });
+
+                    // Initial sign-in attempt
+                    // This is simplified for this example; in a real app, you would
+                    // likely have a dedicated sign-in flow.
                     if (initialAuthToken) {
+                        console.log('Using initial custom auth token to sign in...');
                         await signInWithCustomToken(auth, initialAuthToken);
                     } else {
-                        await signInAnonymously(auth);
+                        console.log('No initial token, showing login page...');
+                        loginPageContainer.classList.remove('hidden');
                     }
 
                 } catch (error) {
                     console.error("Firebase initialization or auth failed:", error);
                 }
+            } else {
+                console.warn("Firebase configuration is missing. Authentication features will not work.");
+                loginStandardBtn.disabled = true;
+                loginPremiumBtn.disabled = true;
+                loginStandardBtn.textContent = 'Login (Disabled)';
+                loginPremiumBtn.textContent = 'Login (Disabled)';
             }
             
             // Existing play/pause and volume logic
@@ -154,27 +280,29 @@
                     percentageDisplay.textContent = `${percentage}%`;
                 });
             });
-
-            volumeSliders.forEach(slider => {
-                const audio = slider.parentElement.previousElementSibling;
-                audio.volume = slider.value;
-            });
-            volumePercentages.forEach(percentageDisplay => {
-                const slider = percentageDisplay.previousElementSibling;
-                const percentage = Math.round(slider.value * 100);
-                percentageDisplay.textContent = `${percentage}%`;
-            });
         });
     </script>
 
-    <!-- Main container for the app -->
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl relative">
+    <!-- Initial Login Page - This is what the user sees first -->
+    <div id="login-page-container" class="w-full max-w-md p-8 text-center hidden">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Soothing Sounds</h1>
+        <div class="space-y-4">
+            <button id="login-standard-btn" class="w-full bg-indigo-500 text-white font-semibold py-4 px-8 rounded-full text-xl hover:bg-indigo-600 transition-colors">
+                Log In as Standard User
+            </button>
+            <button id="login-premium-btn" class="w-full bg-green-500 text-white font-semibold py-4 px-8 rounded-full text-xl hover:bg-green-600 transition-colors">
+                Log In as Premium User
+            </button>
+        </div>
+    </div>
+
+    <!-- Main app container - Initially hidden -->
+    <div id="main-app-container" class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl relative hidden">
         <div class="absolute top-4 right-4">
-            <button id="auth-btn" class="bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors">Login</button>
+            <button id="logout-btn" class="bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors">Logout</button>
         </div>
 
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Soothing Sounds</h1>
-        <p class="text-center text-gray-600 mb-4">Create your perfect soundscape by mixing different sounds.</p>
         
         <div id="auth-status" class="text-center text-sm text-gray-500 mb-4">Not logged in</div>
         
@@ -187,7 +315,6 @@
                     <i class="fas fa-cloud-rain text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold mb-2">Rain</h3>
-                <!-- Audio src updated to a public URL for Canvas functionality -->
                 <audio id="rain-audio" src="Sounds/rain.mp3" loop></audio>
                 <div class="controls w-full flex items-center gap-2 mt-2">
                     <button class="play-pause-btn bg-blue-400 text-white rounded-full p-3 hover:bg-blue-500 transition-colors">
@@ -204,7 +331,6 @@
                     <i class="fas fa-leaf text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold mb-2">Forest</h3>
-                <!-- Audio src updated to a public URL for Canvas functionality -->
                 <audio id="forest-audio" src="Sounds/forest.mp3" loop></audio>
                 <div class="controls w-full flex items-center gap-2 mt-2">
                     <button class="play-pause-btn bg-green-400 text-white rounded-full p-3 hover:bg-green-500 transition-colors">
@@ -221,7 +347,6 @@
                     <i class="fas fa-water text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold mb-2">Ocean</h3>
-                <!-- Audio src updated to a public URL for Canvas functionality -->
                 <audio id="ocean-audio" src="Sounds/ocean.mp3" loop></audio>
                 <div class="controls w-full flex items-center gap-2 mt-2">
                     <button class="play-pause-btn bg-cyan-400 text-white rounded-full p-3 hover:bg-cyan-500 transition-colors">
@@ -238,7 +363,6 @@
                     <i class="fas fa-dove text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold mb-2">Birds</h3>
-                <!-- Audio src updated to a public URL for Canvas functionality -->
                 <audio id="birds-audio" src="Sounds/birds.mp3" loop></audio>
                 <div class="controls w-full flex items-center gap-2 mt-2">
                     <button class="play-pause-btn bg-yellow-400 text-white rounded-full p-3 hover:bg-yellow-500 transition-colors">
@@ -255,7 +379,6 @@
                     <i class="fas fa-fire text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-semibold mb-2">Firewood</h3>
-                <!-- Audio src updated to a public URL for Canvas functionality -->
                 <audio id="firewood-audio" src="Sounds/firewood.mp3" loop></audio>
                 <div class="controls w-full flex items-center gap-2 mt-2">
                     <button id="firewood-play-btn" class="play-pause-btn bg-red-400 text-white rounded-full p-3 hover:bg-red-500 transition-colors">
