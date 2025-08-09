@@ -148,7 +148,6 @@
             const loginStandardBtn = document.getElementById('login-standard-btn');
             const loginPremiumBtn = document.getElementById('login-premium-btn');
             const logoutBtn = document.getElementById('logout-btn');
-            const authStatusDisplay = document.getElementById('auth-status');
             
             // Check for Firebase configuration
             if (Object.keys(firebaseConfig).length > 0) {
@@ -165,11 +164,7 @@
                             loginPageContainer.classList.add('hidden');
                             mainAppContainer.classList.remove('hidden');
                             
-                            // Re-assign role after login
-                            // This is a simplified way to handle roles. In a real app, you would
-                            // fetch the user's role from a database.
-                            // The user's role is not persisted in this example, so it needs to be
-                            // set again on each login.
+                            // Await the role assignment before continuing
                             await assignRoleAndDisplay(user, userRole);
                             
                         } else {
@@ -183,9 +178,11 @@
                             const firewoodAudio = document.getElementById('firewood-audio');
                             firewoodAudio.pause();
                             const firewoodPlayBtn = document.getElementById('firewood-play-btn');
-                            const firewoodPlayIcon = firewoodPlayBtn.querySelector('i');
-                            firewoodPlayIcon.classList.remove('fa-pause');
-                            firewoodPlayIcon.classList.add('fa-play');
+                            if (firewoodPlayBtn) {
+                                const firewoodPlayIcon = firewoodPlayBtn.querySelector('i');
+                                firewoodPlayIcon.classList.remove('fa-pause');
+                                firewoodPlayIcon.classList.add('fa-play');
+                            }
                             
                             updateUIForRole();
                         }
@@ -195,31 +192,31 @@
                     loginStandardBtn.addEventListener('click', async () => {
                         loginStandardBtn.textContent = 'Logging in...';
                         loginStandardBtn.disabled = true;
-                        setTimeout(async () => {
-                            try {
-                                const userCredential = await signInAnonymously(auth);
-                                await assignRoleAndDisplay(userCredential.user, ROLES.STANDARD);
-                            } catch (error) {
-                                console.error("Authentication failed:", error);
-                            }
+                        try {
+                            const userCredential = await signInAnonymously(auth);
+                            // Assign role after successful sign-in
+                            await assignRoleAndDisplay(userCredential.user, ROLES.STANDARD);
+                        } catch (error) {
+                            console.error("Authentication failed:", error);
+                        } finally {
                             loginStandardBtn.textContent = 'Log In as Standard User';
                             loginStandardBtn.disabled = false;
-                        }, 1500);
+                        }
                     });
 
                     loginPremiumBtn.addEventListener('click', async () => {
                         loginPremiumBtn.textContent = 'Logging in...';
                         loginPremiumBtn.disabled = true;
-                        setTimeout(async () => {
-                            try {
-                                const userCredential = await signInAnonymously(auth);
-                                await assignRoleAndDisplay(userCredential.user, ROLES.PREMIUM);
-                            } catch (error) {
-                                console.error("Authentication failed:", error);
-                            }
+                        try {
+                            const userCredential = await signInAnonymously(auth);
+                            // Assign role after successful sign-in
+                            await assignRoleAndDisplay(userCredential.user, ROLES.PREMIUM);
+                        } catch (error) {
+                            console.error("Authentication failed:", error);
+                        } finally {
                             loginPremiumBtn.textContent = 'Log In as Premium User';
                             loginPremiumBtn.disabled = false;
-                        }, 1500);
+                        }
                     });
 
                     // Event listener for the logout button
@@ -228,15 +225,15 @@
                         await signOut(auth);
                     });
 
-                    // Initial sign-in attempt
-                    // This is simplified for this example; in a real app, you would
-                    // likely have a dedicated sign-in flow.
+                    // Check for the initial token
                     if (initialAuthToken) {
                         console.log('Using initial custom auth token to sign in...');
                         await signInWithCustomToken(auth, initialAuthToken);
                     } else {
-                        console.log('No initial token, showing login page...');
+                        // No token, show the login page by default
                         loginPageContainer.classList.remove('hidden');
+                        mainAppContainer.classList.add('hidden');
+                        updateUIForRole();
                     }
 
                 } catch (error) {
@@ -248,6 +245,7 @@
                 loginPremiumBtn.disabled = true;
                 loginStandardBtn.textContent = 'Login (Disabled)';
                 loginPremiumBtn.textContent = 'Login (Disabled)';
+                loginPageContainer.classList.remove('hidden');
             }
             
             // Existing play/pause and volume logic
@@ -284,7 +282,7 @@
     </script>
 
     <!-- Initial Login Page - This is what the user sees first -->
-    <div id="login-page-container" class="w-full max-w-md p-8 text-center hidden">
+    <div id="login-page-container" class="w-full max-w-md p-8 text-center">
         <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to Soothing Sounds</h1>
         <div class="space-y-4">
             <button id="login-standard-btn" class="w-full bg-indigo-500 text-white font-semibold py-4 px-8 rounded-full text-xl hover:bg-indigo-600 transition-colors">
